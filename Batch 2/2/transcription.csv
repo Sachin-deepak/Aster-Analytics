@@ -1,0 +1,6 @@
+timestamp,sender,user_id,messagetype,message
+10/04/2026, 05:01:24,assistant,,Voice Call,Hello, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?
+10/04/2026, 05:01:32,user,917349047603,Voice Call,No.
+10/04/2026, 05:01:33,user,917349047603,Voice Call,Okay
+10/04/2026, 05:01:33,assistant,,Voice Call,Okay, I
+10/04/2026, 05:01:37,assistant,,Voice Call,We noticed you missed your visit at Aster CMI

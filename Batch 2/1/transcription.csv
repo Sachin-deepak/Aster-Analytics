@@ -1,0 +1,6 @@
+timestamp,sender,user_id,messagetype,message
+10/04/2026, 05:01:43,assistant,,Voice Call,Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?
+10/04/2026, 05:01:46,user,917005355922,Voice Call,Normal
+10/04/2026, 05:01:51,assistant,,Voice Call,Which language are you comfortable with? English
+10/04/2026, 05:01:51,user,917005355922,Voice Call,And this.
+10/04/2026, 05:01:59,assistant,,Voice Call,Okay. We noticed you missed your visit at Aster RV Bangalore JP Nagar. May I know the reason for this?

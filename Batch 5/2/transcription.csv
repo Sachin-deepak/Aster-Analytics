@@ -1,0 +1,8 @@
+timestamp,sender,user_id,messagetype,message
+10/04/2026, 12:03:34,assistant,,Voice Call,Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?
+10/04/2026, 12:03:36,user,919900149608,Voice Call,For recording madam
+10/04/2026, 12:03:41,assistant,,Voice Call,I couldn't catch that properly. Could you please speak a bit louder or closer to the mic?
+10/04/2026, 12:03:44,user,919900149608,Voice Call,For recording?
+10/04/2026, 12:03:48,assistant,,Voice Call,I couldn't catch that properly. Could you please speak a bit louder or closer to the mic?
+10/04/2026, 12:03:52,user,919900149608,Voice Call,Hello
+10/04/2026, 12:03:53,assistant,,Voice Call,I couldn't catch that properly.

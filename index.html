@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Aster Call Analysis Dashboard</title>
+<style>
+:root {
+  --bg:#0b1020; --surface:#10172b; --surface2:#131d36; --text:#eef4ff; --muted:#a6b5d6; --line:#263459;
+  --brand:#7cc6ff; --ok:#9ae6b4; --warn:#ffd166; --bad:#ff8f8f;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;font-family:Inter,system-ui,sans-serif;background:linear-gradient(180deg,#09111f,#10192f);color:var(--text)}
+.topbar{position:sticky;top:0;background:rgba(9,17,31,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);z-index:10}
+.topbar .inner{max-width:1380px;margin:0 auto;padding:12px 18px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.topbar a{color:var(--muted);text-decoration:none;font-size:14px;margin-right:12px}
+.container{max-width:1380px;margin:0 auto;padding:22px 18px 48px}
+.hero,.kpis,.layout,.chart-grid,.call-grid,.insights-grid,.grid2,.grid3,.formula-grid{display:grid;gap:16px}
+.hero{grid-template-columns:1.2fr .8fr} .kpis{grid-template-columns:repeat(6,minmax(0,1fr));margin-top:18px}
+.layout{grid-template-columns:300px 1fr;margin-top:22px} .chart-grid{grid-template-columns:repeat(2,minmax(0,1fr))} .call-grid{grid-template-columns:repeat(2,minmax(0,1fr))} .insights-grid{grid-template-columns:repeat(2,minmax(0,1fr))} .grid2{grid-template-columns:repeat(2,minmax(0,1fr))} .grid3{grid-template-columns:repeat(3,minmax(0,1fr))} .formula-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.panel,.card{background:rgba(16,23,43,.92);border:1px solid var(--line);border-radius:18px;padding:18px}
+h1{margin:0 0 10px;font-size:34px} h2{margin:0;font-size:24px} h3{margin:0 0 8px;font-size:18px} p{color:var(--muted);line-height:1.6}
+.kpi .label{font-size:13px;color:var(--muted)} .kpi .value{font-size:30px;font-weight:800;margin-top:8px} .kpi .hint{font-size:12px;color:var(--muted);margin-top:8px}
+.sidebar{position:sticky;top:78px;align-self:start} label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+input[type="search"],select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#0d1426;color:var(--text)}
+button{cursor:pointer} .reset{background:var(--brand);color:#06253c;border:none;border-radius:12px;padding:11px 12px;font-weight:700}
+.chips{display:flex;gap:8px;flex-wrap:wrap} .chip{border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);padding:9px 10px;border-radius:12px}
+.chip.active{background:rgba(124,198,255,.12);border-color:rgba(124,198,255,.28)}
+.chart-box{height:320px} canvas{display:block;width:100% !important;height:100% !important}
+.table-wrap{overflow:auto} table{width:100%;border-collapse:collapse;font-size:14px} th,td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top} th{color:var(--brand)}
+.call-card{background:rgba(19,29,54,.88);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.call-head{padding:16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+.call-body{padding:16px;display:grid;gap:12px}
+.badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;margin-right:6px}
+.clean{background:rgba(154,230,180,.12);color:#bff1ce} .okay{background:rgba(255,209,102,.12);color:#ffe29a} .attn{background:rgba(255,143,143,.12);color:#ffb7b7} .drop{background:rgba(124,198,255,.12);color:#d5efff}
+.pill,.finding{display:inline-block;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:999px;padding:8px 10px;font-size:12px;margin:0 8px 8px 0}
+.finding{border-radius:12px} audio{width:100%} details summary{cursor:pointer;color:var(--brand);font-weight:700} pre{margin:0;padding:14px;background:#0a1020;border:1px solid var(--line);border-radius:14px;color:#dbe6ff;white-space:pre-wrap;max-height:260px;overflow:auto}
+.empty{padding:26px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:16px}
+.list{margin:0;padding-left:18px;line-height:1.7}
+.note{background:rgba(124,198,255,.08);border:1px solid rgba(124,198,255,.22);border-radius:14px;padding:14px;color:var(--text)}
+.callout{border-left:4px solid var(--brand);padding-left:12px}
+.method-nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.method-nav a{display:inline-block;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);text-decoration:none;font-size:13px}
+.main-nav{display:flex;gap:8px;flex-wrap:wrap}
+.main-nav a{display:inline-block;padding:9px 14px;border-radius:999px;border:1px solid transparent;color:var(--muted);text-decoration:none;font-size:14px;font-weight:700}
+.main-nav a.active{background:rgba(124,198,255,.14);border-color:rgba(124,198,255,.32);color:var(--text)}
+.screen{display:none}
+.screen.active{display:block}
+.screen-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.screen-nav a{display:inline-block;padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text);text-decoration:none;font-size:13px}
+.svgbox{background:#0a1020;border:1px solid var(--line);border-radius:14px;padding:10px}
+.ok{background:rgba(154,230,180,.12);color:#bff1ce}
+.warn{background:rgba(255,209,102,.12);color:#ffe29a}
+.methodology-content p,.methodology-content li{line-height:1.65;color:var(--text)}
+.methodology-content .muted{color:var(--muted)}
+.methodology-content pre{padding:14px;overflow:auto;white-space:pre-wrap;max-height:none}
+.methodology-content .kpi{padding:18px;border-radius:16px;border:1px solid var(--line);background:rgba(19,29,54,.9)}
+.methodology-content .kpi .value{font-size:28px}
+.muted{color:var(--muted)}
+@media (max-width:1180px){.hero,.layout,.chart-grid,.call-grid,.insights-grid,.grid2,.grid3,.formula-grid{grid-template-columns:1fr} .kpis{grid-template-columns:repeat(3,minmax(0,1fr))} .sidebar{position:static}}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head><body>
+<div class="topbar"><div class="inner"><div style="font-weight:800">Aster Call Analysis</div><div class="main-nav"><a href="#dashboard" data-screen-link="dashboard" class="active">Dashboard</a><a href="#methodology" data-screen-link="methodology">Methodology</a></div></div></div>
+<div class="container">
+<section id="dashboardScreen" class="screen active">
+<div class="screen-nav"><a href="#overview">Overview</a><a href="#analytics">Analytics</a><a href="#calls">Call explorer</a></div>
+<section class="hero" id="overview">
+<div class="panel"><h1>Lightweight dashboard for the AI call analysis</h1><p>This version fixes the heavy page issue and renumbers each batch from recording 1 onward. Sound values are shown as simple percentages and scores instead of technical dB labels.</p></div>
+<div class="panel"><p><strong>Coverage note:</strong> 25 calls were picked according to your summary, while 24 call folders were uploaded. Batch 4 appears to be missing one picked call asset.</p></div>
+</section>
+<div class="kpis">
+<div class="card kpi"><div class="label">Calls attempted</div><div class="value">50</div><div class="hint">Across all 5 batches</div></div>
+<div class="card kpi"><div class="label">Calls picked</div><div class="value">25</div><div class="hint">50.0% pickup rate</div></div>
+<div class="card kpi"><div class="label">Successful reschedules</div><div class="value">0</div><div class="hint">From provided data</div></div>
+<div class="card kpi"><div class="label">Uploaded call assets</div><div class="value">24</div><div class="hint">Calls available for review</div></div>
+<div class="card kpi"><div class="label">Clean audio</div><div class="value">15</div><div class="hint">Fewer sound issues</div></div>
+<div class="card kpi"><div class="label">Audio needing attention</div><div class="value">0</div><div class="hint">More sound issues</div></div>
+</div>
+
+<section id="analytics" class="layout">
+<aside class="panel sidebar">
+<label>Search by batch, recording, summary, or transcript</label>
+<input id="searchBox" type="search" placeholder="Search calls..."/>
+<label style="margin-top:12px">Batch</label>
+<select id="batchFilter"><option value="All">All batches</option></select>
+<label style="margin-top:12px">Audio quality</label>
+<select id="qualityFilter"><option value="All">All audio quality levels</option><option>Clean</option><option>Okay</option><option>Needs attention</option></select>
+<label style="margin-top:12px">Drop stage</label>
+<select id="dropFilter"><option value="All">All drop stages</option><option>Dropped at opening</option><option>Dropped after short reply</option><option>Stayed for conversation</option></select>
+<label style="margin-top:12px">Sort calls by</label>
+<select id="sortBy"><option value="batch">Batch + recording order</option><option value="durationDesc">Longest call first</option><option value="durationAsc">Shortest call first</option><option value="silenceDesc">Most silence first</option><option value="noiseDesc">Most background-noise signs first</option></select>
+<div style="margin-top:12px">
+<label>Quick filters</label>
+<div class="chips">
+<button class="chip" data-chip="hasFindings">Only calls with sound issues</button>
+<button class="chip" data-chip="hasConversation">Only calls with conversation</button>
+<button class="chip" data-chip="hasPlayer">Only calls with audio</button>
+</div></div>
+<button class="reset" id="resetFilters" style="margin-top:14px">Reset all filters</button>
+</aside>
+
+<div style="display:grid;gap:18px">
+<div class="chart-grid">
+<div class="card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px"><h2 style="font-size:18px">Pickup vs success by batch</h2><div style="color:var(--muted);font-size:14px">Provided batch metrics</div></div><div class="chart-box"><canvas id="batchChart"></canvas></div></div>
+<div class="card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px"><h2 style="font-size:18px">Average silence by batch</h2><div style="color:var(--muted);font-size:14px">Uploaded audio files</div></div><div class="chart-box"><canvas id="silenceChart"></canvas></div></div>
+<div class="card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px"><h2 style="font-size:18px">Speech clarity by batch</h2><div style="color:var(--muted);font-size:14px">Higher is clearer</div></div><div class="chart-box"><canvas id="clarityChart"></canvas></div></div>
+<div class="card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px"><h2 style="font-size:18px">Background-noise signs by batch</h2><div style="color:var(--muted);font-size:14px">Higher means more background sound</div></div><div class="chart-box"><canvas id="noiseChart"></canvas></div></div>
+<div class="card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px"><h2 style="font-size:18px">Possible background-speech signs</h2><div style="color:var(--muted);font-size:14px">Heuristic indicator</div></div><div class="chart-box"><canvas id="bgSpeechChart"></canvas></div></div>
+<div class="card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px"><h2 style="font-size:18px">Audio quality mix</h2><div style="color:var(--muted);font-size:14px">Filtered calls</div></div><div class="chart-box"><canvas id="qualityChart"></canvas></div></div>
+<div class="card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px"><h2 style="font-size:18px">Most common sound issues</h2><div style="color:var(--muted);font-size:14px">Filtered calls</div></div><div class="chart-box"><canvas id="issuesChart"></canvas></div></div>
+<div class="card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px"><h2 style="font-size:18px">Drop stage mix</h2><div style="color:var(--muted);font-size:14px">Filtered calls</div></div><div class="chart-box"><canvas id="dropChart"></canvas></div></div>
+</div>
+
+<div class="insights-grid">
+<div class="card"><h2 style="font-size:18px;margin-bottom:10px">Simple insights</h2><ul id="insightsList" class="list"></ul></div>
+<div class="card"><h2 style="font-size:18px;margin-bottom:10px">Batch summary</h2><div class="table-wrap"><table><thead><tr><th>Batch</th><th>Attempted</th><th>Picked</th><th>Pickup %</th><th>Assets reviewed</th><th>Avg silence</th><th>Clarity score</th><th>Noise score</th><th>Background-speech sign</th></tr></thead><tbody id="batchRows"></tbody></table></div></div>
+</div>
+
+<div class="card" id="calls"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px"><h2>Call explorer</h2><div style="color:var(--muted)"><span id="resultCount">0</span> calls shown</div></div><div id="callGrid" class="call-grid"></div><div id="emptyState" class="empty" style="display:none">No calls match the current filters.</div></div>
+</div>
+</section>
+</section>
+
+<section id="methodologyScreen" class="screen methodology-content">
+<div class="screen-nav"><a href="#method-overview">Overview</a><a href="#method-pipeline">Pipeline</a><a href="#method-audio">Audio metrics</a><a href="#method-transcript">Transcript logic</a><a href="#method-limits">Limits</a></div>
+  <section id="method-overview" class="hero" style="margin-top:24px">
+    <div class="panel">
+      <h1>How the full analysis was calculated</h1>
+      <p class="muted">
+        This page explains the full end-to-end logic used in the call analysis dashboard:
+        what inputs were used, how every metric was created, which parts came from audio,
+        which parts came from transcripts, what formulas were used, what rules were applied,
+        and what the limits are.
+      </p>
+      <div class="note" style="margin-top:14px">
+        The analysis has two separate lanes:
+        <strong>audio analysis</strong> from the recording signal itself, and
+        <strong>conversation analysis</strong> from the transcript text.
+        They are intentionally kept separate.
+      </div>
+    </div>
+    <div class="panel">
+      <h3>What this methodology covers</h3>
+      <ul>
+        <li>Input files and folder structure</li>
+        <li>How calls were matched and renumbered batch-wise</li>
+        <li>How sound quality metrics were computed</li>
+        <li>How plain-language audio findings were assigned</li>
+        <li>How transcript summaries and drop stages were decided</li>
+        <li>How charts and batch rollups were built</li>
+        <li>What is measured directly vs inferred heuristically</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="grid3" style="margin-top:18px">
+    <div class="kpi"><div class="label">Input sources</div><div class="value">ZIP + transcripts + audio</div></div>
+    <div class="kpi"><div class="label">Analysis lanes</div><div class="value">2</div><div class="muted">Audio lane and transcript lane</div></div>
+    <div class="kpi"><div class="label">Output layers</div><div class="value">3</div><div class="muted">Call-level, batch-level, consolidated</div></div>
+  </section>
+
+  <section id="method-pipeline" style="margin-top:24px">
+    <div class="panel">
+      <h2>End-to-end pipeline</h2>
+      <div class="svgbox">
+        <svg viewBox="0 0 1200 260" width="100%" height="220" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <style>
+              .b{fill:#131d36;stroke:#263459;stroke-width:2}
+              .t{fill:#eef4ff;font:600 18px Inter,Arial}
+              .s{fill:#a6b5d6;font:14px Inter,Arial}
+              .a{stroke:#7cc6ff;stroke-width:3;marker-end:url(#m)}
+            </style>
+            <marker id="m" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 10 3, 0 6" fill="#7cc6ff"/>
+            </marker>
+          </defs>
+          <rect class="b" x="20" y="40" rx="16" ry="16" width="180" height="90"/>
+          <text class="t" x="110" y="75" text-anchor="middle">ZIP input</text>
+          <text class="s" x="110" y="100" text-anchor="middle">Batch folders</text>
+          <text class="s" x="110" y="120" text-anchor="middle">audio + transcript pairs</text>
+
+          <rect class="b" x="250" y="40" rx="16" ry="16" width="180" height="90"/>
+          <text class="t" x="340" y="75" text-anchor="middle">Pairing stage</text>
+          <text class="s" x="340" y="100" text-anchor="middle">one folder = one call</text>
+          <text class="s" x="340" y="120" text-anchor="middle">renumber within batch</text>
+
+          <rect class="b" x="480" y="20" rx="16" ry="16" width="210" height="90"/>
+          <text class="t" x="585" y="55" text-anchor="middle">Audio analysis lane</text>
+          <text class="s" x="585" y="80" text-anchor="middle">silence, clarity, noise,</text>
+          <text class="s" x="585" y="100" text-anchor="middle">background-speech sign</text>
+
+          <rect class="b" x="480" y="140" rx="16" ry="16" width="210" height="90"/>
+          <text class="t" x="585" y="175" text-anchor="middle">Transcript lane</text>
+          <text class="s" x="585" y="200" text-anchor="middle">summary, user turns,</text>
+          <text class="s" x="585" y="220" text-anchor="middle">drop stage</text>
+
+          <rect class="b" x="760" y="40" rx="16" ry="16" width="180" height="90"/>
+          <text class="t" x="850" y="75" text-anchor="middle">Rollup stage</text>
+          <text class="s" x="850" y="100" text-anchor="middle">call-level + batch-level</text>
+          <text class="s" x="850" y="120" text-anchor="middle">metrics and charts</text>
+
+          <rect class="b" x="990" y="40" rx="16" ry="16" width="180" height="90"/>
+          <text class="t" x="1080" y="75" text-anchor="middle">Dashboard</text>
+          <text class="s" x="1080" y="100" text-anchor="middle">filters, charts, audio</text>
+          <text class="s" x="1080" y="120" text-anchor="middle">and call explorer</text>
+
+          <line class="a" x1="200" y1="85" x2="250" y2="85"/>
+          <line class="a" x1="430" y1="85" x2="480" y2="65"/>
+          <line class="a" x1="430" y1="85" x2="480" y2="185"/>
+          <line class="a" x1="690" y1="65" x2="760" y2="85"/>
+          <line class="a" x1="690" y1="185" x2="760" y2="85"/>
+          <line class="a" x1="940" y1="85" x2="990" y2="85"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid2" style="margin-top:18px">
+    <div class="card">
+      <h2>Step 1: Input capture and pairing</h2>
+      <ul>
+        <li>The uploaded ZIP was extracted into batch folders.</li>
+        <li>Each subfolder inside a batch was treated as one call record.</li>
+        <li>Inside each call folder, the script looked for:
+          <ul>
+            <li>a transcript file such as <code>transcription.csv</code> or <code>transcript.txt</code></li>
+            <li>an audio file such as <code>.mp3</code></li>
+          </ul>
+        </li>
+        <li>Calls were then renumbered from <strong>Recording 1 to Recording n</strong> within each batch, in ascending folder order.</li>
+      </ul>
+      <div class="callout muted">
+        This means the displayed recording number is a presentation number for easier reading. It is not always the original folder name.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Step 2: Two-lane separation</h2>
+      <table>
+        <thead><tr><th>Lane</th><th>Input</th><th>Used for</th><th>Not used for</th></tr></thead>
+        <tbody>
+          <tr><td>Audio lane</td><td>MP3 waveform</td><td>silence, clarity, noise, background-speech sign, audio quality</td><td>meaning of conversation, summary, intent</td></tr>
+          <tr><td>Transcript lane</td><td>CSV/TXT text</td><td>summary, user turn count, drop stage, transcript preview</td><td>noise judgment, sound quality, background interference scoring</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="method-audio" style="margin-top:24px">
+    <div class="panel">
+      <h2>Audio analysis methodology</h2>
+      <p class="muted">
+        The audio lane reads the recording signal, converts it to mono, breaks it into short windows,
+        and computes summary values from the sound envelope and frequency texture.
+        The UI then converts those technical values into plain-language scores and findings.
+      </p>
+    </div>
+
+    <div class="formula-grid" style="margin-top:16px">
+      <div class="card">
+        <h3>Silence %</h3>
+        <p>Measures how much of the call is quiet relative to detected active speech or sound.</p>
+        <pre>silence_percent =
+  100 × (1 - non_silent_duration / total_duration)</pre>
+        <ul>
+          <li>High value means lots of dead air, pauses, abandonment, or one-sided audio.</li>
+          <li>Used directly in call cards and in the batch silence chart.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Longest silent stretch</h3>
+        <p>Measures the single longest continuous quiet segment in the file.</p>
+        <pre>longest_silence =
+  max(duration of every detected silent segment)</pre>
+        <ul>
+          <li>Used to flag calls with one large inactivity block.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Speech clarity score</h3>
+        <p>Represents how clearly speech stands above the quieter floor of the recording.</p>
+        <pre>raw_clarity =
+  percentile_75(active_level) - percentile_10(quiet_floor)
+
+clarity_score =
+  clamp(0, 100, ((raw_clarity - 5) / 20) × 100)</pre>
+        <ul>
+          <li>Higher score means speech is easier to hear.</li>
+          <li>Lower score means speech and background are closer together.</li>
+          <li>The UI shows only the 0–100 score, not the underlying dB gap.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Noise score</h3>
+        <p>Represents how noise-like the sound texture is across short frequency windows.</p>
+        <pre>spectral_flatness =
+  geometric_mean(spectrum) / arithmetic_mean(spectrum)
+
+noise_score =
+  clamp(0, 100, spectral_flatness × 180)</pre>
+        <ul>
+          <li>Higher score means the sound is less speech-like and more noise-like.</li>
+          <li>This can reflect hiss, fan noise, room noise, traffic texture, or diffuse background sound.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Volume-change score</h3>
+        <p>Measures how unstable the loudness is during the call.</p>
+        <pre>rms_cv =
+  std(rms_windows) / mean(rms_windows)
+
+volume_change_score =
+  clamp(0, 100, (rms_cv / 1.5) × 100)</pre>
+        <ul>
+          <li>Higher score means stronger changes in loudness over time.</li>
+          <li>Can indicate changing distance from mic, inconsistent speech level, bursts, or mixed sources.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Background-speech sign</h3>
+        <p>
+          This is a heuristic indicator, not a direct detector.
+          It estimates the likelihood that the call contains competing speech-like interference.
+        </p>
+        <pre>bg_speech_indicator =
+  0.45 × noise_score
++ 0.35 × volume_change_score
++ 0.20 × (100 - clarity_score)
+
+then clamp to 0–100</pre>
+        <ul>
+          <li>Higher score means stronger signs of competing or interfering sound.</li>
+          <li>This does <strong>not</strong> prove there was another speaker. It is a risk indicator only.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid2" style="margin-top:18px">
+    <div class="card">
+      <h2>How plain-language audio findings were assigned</h2>
+      <table>
+        <thead><tr><th>Rule</th><th>Condition</th><th>Output shown in UI</th></tr></thead>
+        <tbody>
+          <tr><td>Silence heavy</td><td>silence % ≥ 65</td><td>A lot of silence in the call</td></tr>
+          <tr><td>Silence moderate</td><td>45 ≤ silence % &lt; 65</td><td>Quite a bit of silence</td></tr>
+          <tr><td>Long quiet block</td><td>longest silence ≥ 8 sec</td><td>One long silent stretch</td></tr>
+          <tr><td>Quiet gap</td><td>4 ≤ longest silence &lt; 8 sec</td><td>Noticeable silent gap</td></tr>
+          <tr><td>Low clarity</td><td>clarity ≤ 30</td><td>Speech is hard to hear clearly</td></tr>
+          <tr><td>Medium clarity</td><td>30 &lt; clarity ≤ 55</td><td>Speech is only somewhat clear</td></tr>
+          <tr><td>High noise</td><td>noise score ≥ 60</td><td>Strong background-noise signs</td></tr>
+          <tr><td>Medium noise</td><td>40 ≤ noise score &lt; 60</td><td>Some background-noise signs</td></tr>
+          <tr><td>Background speech risk</td><td>background-speech sign ≥ 65</td><td>Possible competing speech in the background</td></tr>
+          <tr><td>Strong instability</td><td>volume-change score ≥ 75</td><td>Volume changes a lot during the call</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>How audio quality bucket was assigned</h2>
+      <p>The overall audio quality label is rule-based, using a weighted point system.</p>
+      <pre>score = 0
+
+if silence >= 65: score += 2
+else if silence >= 45: score += 1
+
+if clarity <= 30: score += 2
+else if clarity <= 55: score += 1
+
+if clipping risk is high: score += 1
+if noise score >= 60: score += 1
+
+if score >= 4  -> Needs attention
+if score >= 2  -> Okay
+else           -> Clean</pre>
+      <p class="muted">
+        This is not a machine-learning classifier. It is an explainable rule-based quality label.
+      </p>
+    </div>
+  </section>
+
+  <section id="method-transcript" style="margin-top:24px">
+    <div class="panel">
+      <h2>Transcript analysis methodology</h2>
+      <p class="muted">
+        The transcript lane does not judge audio quality. It only interprets conversation structure.
+      </p>
+    </div>
+
+    <div class="grid2" style="margin-top:16px">
+      <div class="card">
+        <h3>User turn count</h3>
+        <p>Counts the number of transcript rows whose sender is marked as <code>user</code>.</p>
+        <pre>user_turns =
+  count(rows where sender == "user")</pre>
+      </div>
+
+      <div class="card">
+        <h3>Drop stage</h3>
+        <p>Assigned from user turn count only.</p>
+        <pre>if user_turns == 0:
+  drop_stage = "Dropped at opening"
+else if user_turns <= 2:
+  drop_stage = "Dropped after short reply"
+else:
+  drop_stage = "Stayed for conversation"</pre>
+      </div>
+
+      <div class="card">
+        <h3>Conversation summary</h3>
+        <p>A short summary is generated using simple rule checks.</p>
+        <pre>if no user text:
+  "call opened but no clear user response"
+
+else if user denies appointment context:
+  "appointment context did not match"
+
+else if assistant says it couldn't catch user:
+  "agent had trouble catching speech"
+
+else if user_turns >= 3:
+  "real back-and-forth but no reschedule"
+
+else:
+  "brief reply, conversation ended early"</pre>
+      </div>
+
+      <div class="card">
+        <h3>Transcript preview</h3>
+        <p>The UI preview shows the first part of the transcript only.</p>
+        <pre>preview =
+  first 12 speaker-message lines</pre>
+      </div>
+    </div>
+  </section>
+
+  <section style="margin-top:24px">
+    <div class="panel">
+      <h2>Batch-level rollups</h2>
+      <p class="muted">
+        Batch charts and tables are built by grouping calls by batch and averaging or counting the call-level metrics.
+      </p>
+      <div class="grid2" style="margin-top:14px">
+        <div class="card">
+          <h3>Example rollup formulas</h3>
+          <pre>batch_avg_silence =
+  mean(call.silence_percent for calls in batch)
+
+batch_avg_clarity =
+  mean(call.clarity_score for calls in batch)
+
+batch_avg_noise =
+  mean(call.noise_score for calls in batch)
+
+batch_opening_drops =
+  count(calls where drop_stage == "Dropped at opening")</pre>
+        </div>
+        <div class="card">
+          <h3>Operational metrics</h3>
+          <p>The following values were not derived from recordings. They were taken from the user-provided batch summary:</p>
+          <ul>
+            <li>calls attempted</li>
+            <li>calls picked</li>
+            <li>successful reschedules</li>
+            <li>average session duration</li>
+            <li>total session duration</li>
+            <li>opt-outs</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="margin-top:24px">
+    <div class="panel">
+      <h2>Programmatic logic overview</h2>
+      <pre>1. Extract ZIP
+2. Walk through batch folders
+3. For each call folder:
+   - load transcript if available
+   - load audio if available
+4. Renumber recordings inside each batch from 1..n
+5. Run audio analysis:
+   - convert to mono
+   - split into short windows
+   - calculate RMS envelope
+   - detect silent and non-silent regions
+   - calculate clarity, noise, instability, and background-speech sign
+6. Run transcript analysis:
+   - count user turns
+   - assign drop stage
+   - build rule-based summary
+7. Build call-level records
+8. Group calls by batch for rollups
+9. Render charts, filters, and call explorer in HTML</pre>
+    </div>
+  </section>
+
+  <section id="method-limits" style="margin-top:24px">
+    <div class="grid2">
+      <div class="card">
+        <h2>What is directly measured</h2>
+        <ul>
+          <li>audio duration</li>
+          <li>amount of silence</li>
+          <li>quiet-floor vs active-speech separation</li>
+          <li>noise-like texture level</li>
+          <li>volume instability</li>
+          <li>user turn count from transcript</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>What is inferred heuristically</h2>
+        <ul>
+          <li>overall audio quality bucket</li>
+          <li>background-speech sign</li>
+          <li>plain-language findings like “possible competing speech”</li>
+          <li>conversation summary label</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2>Important limits</h2>
+      <ul>
+        <li>This is not speaker diarization. It does not identify who spoke when.</li>
+        <li>This is not source separation. It cannot prove whether the background sound came from TV, another person, traffic, or room echo.</li>
+        <li>Transcript-based logic depends on transcript quality. If the transcript misses speech, the summary may understate what happened.</li>
+        <li>Audio scores are designed to be understandable and explainable, not clinically exact.</li>
+        <li>The “background-speech sign” is a risk-style indicator created from multiple audio cues, not a direct detector.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section style="margin-top:24px">
+    <div class="panel">
+      <h2>Bottom line</h2>
+      <p>
+        The analysis system is deliberately explainable. Every label shown in the dashboard comes either from:
+      </p>
+      <ul>
+        <li><span class="badge ok">Direct metric</span> a directly computed value from the waveform or transcript structure, or</li>
+        <li><span class="badge warn">Heuristic label</span> a rule-based interpretation built from those values.</li>
+      </ul>
+      <p class="muted">
+        That makes the dashboard easier to audit, revise, and trust.
+      </p>
+    </div>
+  </section>
+</section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const DATA = {"calls": [{"batch": "Batch 1", "recordingNo": 1, "originalCallId": "1", "audioPath": "audio/Batch_1_recording_1.mp3", "audioQuality": "Clean", "audioFindings": ["Quite a bit of silence", "Some background-noise signs", "Volume changes a lot during the call"], "summary": "The user replied briefly, but the conversation ended early.", "dropoffStage": "Dropped after short reply", "userTurns": 1, "transcriptPreview": "Assistant: Hello, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nUser: Yeah tell me. Yeah. Hello. Hello.\nAssistant: Which language are you", "durationSec": 18.47, "silencePct": 62.7, "longestSilenceSec": 3.4, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 40.6, "instabilityScore": 95.3, "bgSpeechIndicator": 51.6}, {"batch": "Batch 1", "recordingNo": 2, "originalCallId": "2", "audioPath": "audio/Batch_1_recording_2.mp3", "audioQuality": "Clean", "audioFindings": ["Strong background-noise signs", "Volume changes a lot during the call"], "summary": "The user replied briefly, but the conversation ended early.", "dropoffStage": "Dropped after short reply", "userTurns": 1, "transcriptPreview": "Assistant: Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nUser: you know?\nAssistant: Which language are you comfortable with? English or Kannada?", "durationSec": 13.06, "silencePct": 39.1, "longestSilenceSec": 2.3, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 67.7, "instabilityScore": 77.7, "bgSpeechIndicator": 57.7}, {"batch": "Batch 1", "recordingNo": 3, "originalCallId": "3", "audioPath": "audio/Batch_1_recording_3.mp3", "audioQuality": "Clean", "audioFindings": ["Some background-noise signs", "Volume changes a lot during the call"], "summary": "The user said the appointment context did not match their situation.", "dropoffStage": "Stayed for conversation", "userTurns": 17, "transcriptPreview": "Assistant: Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nUser: Yes. Vera religion ninnu jaan kettu nannu aade problem. Ente munnodulla jeevith.\nAssistant: Let me say that again. Hi, I'm Asha\nAssistant: Which language are you comfortable with? English or Kannada?\nUser: Avaru irakku aalu please. Enna valuthu enna please. Aa yes yes please. Athu kittulankil avarkum thaalappari olum irakke kannu.\nUser: English only\nAssistant: We noticed you missed your visit at Aster\nAssistant: Okay. We noticed you missed your visit\nUser: Ijjalla adu politics. Oh yeah. Do you have CGHS?\nUser: Empanelment.\nUser: CGH.\nAssistant: May I know the reason for this? Was it due to cost,", "durationSec": 103.11, "silencePct": 42.3, "longestSilenceSec": 3.1, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 49.4, "instabilityScore": 75.8, "bgSpeechIndicator": 48.8}, {"batch": "Batch 1", "recordingNo": 4, "originalCallId": "4", "audioPath": "audio/Batch_1_recording_4.mp3", "audioQuality": "Okay", "audioFindings": ["Quite a bit of silence", "Strong background-noise signs", "Possible competing speech in the background", "Volume changes a lot during the call"], "summary": "The call opened, but the transcript does not capture a clear response from the user.", "dropoffStage": "Dropped at opening", "userTurns": 0, "transcriptPreview": "Assistant: Hi! I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nAssistant: It seems you might not have heard that. Hi! I'm Asha from", "durationSec": 19.78, "silencePct": 55.9, "longestSilenceSec": 3.6, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 76.7, "instabilityScore": 89.1, "bgSpeechIndicator": 65.7}, {"batch": "Batch 2", "recordingNo": 1, "originalCallId": "1", "audioPath": "audio/Batch_2_recording_1.mp3", "audioQuality": "Okay", "audioFindings": ["Quite a bit of silence", "Noticeable silent gap", "Strong background-noise signs", "Possible competing speech in the background", "Volume changes a lot during the call"], "summary": "The user replied briefly, but the conversation ended early.", "dropoffStage": "Dropped after short reply", "userTurns": 2, "transcriptPreview": "Assistant: Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nUser: Normal\nAssistant: Which language are you comfortable with? English\nUser: And this.\nAssistant: Okay. We noticed you missed your visit at Aster RV Bangalore JP Nagar. May I know the reason for this?", "durationSec": 28.24, "silencePct": 58.5, "longestSilenceSec": 4.4, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 81.5, "instabilityScore": 92.4, "bgSpeechIndicator": 69.0}, {"batch": "Batch 2", "recordingNo": 2, "originalCallId": "2", "audioPath": "audio/Batch_2_recording_2.mp3", "audioQuality": "Okay", "audioFindings": ["Quite a bit of silence", "Noticeable silent gap", "Strong background-noise signs", "Possible competing speech in the background", "Volume changes a lot during the call"], "summary": "The user replied briefly, but the conversation ended early.", "dropoffStage": "Dropped after short reply", "userTurns": 2, "transcriptPreview": "Assistant: Hello, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nUser: No.\nUser: Okay\nAssistant: Okay, I\nAssistant: We noticed you missed your visit at Aster CMI", "durationSec": 18.86, "silencePct": 62.3, "longestSilenceSec": 4.5, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 78.8, "instabilityScore": 100.0, "bgSpeechIndicator": 70.5}, {"batch": "Batch 2", "recordingNo": 3, "originalCallId": "3", "audioPath": "audio/Batch_2_recording_3.mp3", "audioQuality": "Okay", "audioFindings": ["Quite a bit of silence", "Strong background-noise signs", "Possible competing speech in the background", "Volume changes a lot during the call"], "summary": "The call opened, but the transcript does not capture a clear response from the user.", "dropoffStage": "Dropped at opening", "userTurns": 0, "transcriptPreview": "Assistant: Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?", "durationSec": 10.14, "silencePct": 57.9, "longestSilenceSec": 3.6, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 79.1, "instabilityScore": 94.7, "bgSpeechIndicator": 68.7}, {"batch": "Batch 2", "recordingNo": 4, "originalCallId": "4", "audioPath": "audio/Batch_2_recording_4.mp3", "audioQuality": "Clean", "audioFindings": ["Strong background-noise signs", "Volume changes a lot during the call"], "summary": "The call opened, but the transcript does not capture a clear response from the user.", "dropoffStage": "Dropped at opening", "userTurns": 0, "transcriptPreview": "Assistant: Hello! I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?", "durationSec": 8.42, "silencePct": 38.9, "longestSilenceSec": 1.9, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 61.3, "instabilityScore": 75.4, "bgSpeechIndicator": 54.0}, {"batch": "Batch 2", "recordingNo": 5, "originalCallId": "5", "audioPath": "audio/Batch_2_recording_5.mp3", "audioQuality": "Okay", "audioFindings": ["Quite a bit of silence", "Strong background-noise signs", "Volume changes a lot during the call"], "summary": "The call opened, but the transcript does not capture a clear response from the user.", "dropoffStage": "Dropped at opening", "userTurns": 0, "transcriptPreview": "Assistant: Hello, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?", "durationSec": 8.06, "silencePct": 47.3, "longestSilenceSec": 1.7, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 63.8, "instabilityScore": 77.3, "bgSpeechIndicator": 55.8}, {"batch": "Batch 3", "recordingNo": 1, "originalCallId": "3", "audioPath": "audio/Batch_3_recording_1.mp3", "audioQuality": "Clean", "audioFindings": ["Some background-noise signs", "Volume changes somewhat during the call"], "summary": "The user replied briefly, but the conversation ended early.", "dropoffStage": "Dropped after short reply", "userTurns": 2, "transcriptPreview": "Assistant: Hello, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nUser: Ma'am, 28. Ma'am actually I am in temple, can I call you? Can you call me back tomorrow?\nUser: Thank you Ma'am\nAssistant: Sure, I can call you back tomorrow. What\nAssistant: Thank you for your time. Have a great day.", "durationSec": 21.08, "silencePct": 33.8, "longestSilenceSec": 2.7, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 53.1, "instabilityScore": 74.8, "bgSpeechIndicator": 50.1}, {"batch": "Batch 3", "recordingNo": 2, "originalCallId": "4", "audioPath": "audio/Batch_3_recording_2.mp3", "audioQuality": "Clean", "audioFindings": ["Some background-noise signs", "Volume changes somewhat during the call"], "summary": "The user said the appointment context did not match their situation.", "dropoffStage": "Dropped after short reply", "userTurns": 2, "transcriptPreview": "Assistant: Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nUser: No, I have not taken any appointment.\nAssistant: My apologies, there might be a technical error in our records. Is there anything else I can help you with?\nUser: No no thank you\nAssistant: Thank you for your time. Have a great", "durationSec": 20.56, "silencePct": 44.9, "longestSilenceSec": 2.4, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 57.9, "instabilityScore": 72.7, "bgSpeechIndicator": 51.5}, {"batch": "Batch 3", "recordingNo": 3, "originalCallId": "5", "audioPath": "audio/Batch_3_recording_3.mp3", "audioQuality": "Clean", "audioFindings": ["Some background-noise signs", "Volume changes somewhat during the call"], "summary": "The call opened, but the transcript does not capture a clear response from the user.", "dropoffStage": "Dropped at opening", "userTurns": 0, "transcriptPreview": "Assistant: Hello, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?", "durationSec": 8.44, "silencePct": 37.5, "longestSilenceSec": 1.8, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 50.2, "instabilityScore": 74.6, "bgSpeechIndicator": 48.7}, {"batch": "Batch 3", "recordingNo": 4, "originalCallId": "6", "audioPath": "audio/Batch_3_recording_4.mp3", "audioQuality": "Clean", "audioFindings": ["Quite a bit of silence", "Some background-noise signs", "Volume changes a lot during the call"], "summary": "The user replied briefly, but the conversation ended early.", "dropoffStage": "Dropped after short reply", "userTurns": 1, "transcriptPreview": "Assistant: Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nUser: Hello\nAssistant: Which language are you comfortable with? English or Kannada?", "durationSec": 16.76, "silencePct": 52.9, "longestSilenceSec": 3.3, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 58.3, "instabilityScore": 87.1, "bgSpeechIndicator": 56.7}, {"batch": "Batch 3", "recordingNo": 5, "originalCallId": "7", "audioPath": "audio/Batch_3_recording_5.mp3", "audioQuality": "Clean", "audioFindings": ["Some background-noise signs", "Volume changes somewhat during the call"], "summary": "The call opened, but the transcript does not capture a clear response from the user.", "dropoffStage": "Dropped at opening", "userTurns": 0, "transcriptPreview": "Assistant: Hello! I'm Asha, a care coordinator from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?", "durationSec": 8.4, "silencePct": 25.9, "longestSilenceSec": 1.6, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 52.6, "instabilityScore": 62.2, "bgSpeechIndicator": 45.4}, {"batch": "Batch 4", "recordingNo": 1, "originalCallId": "1", "audioPath": "audio/Batch_4_recording_1.mp3", "audioQuality": "Okay", "audioFindings": ["Quite a bit of silence", "Strong background-noise signs", "Volume changes a lot during the call"], "summary": "The call opened, but the transcript does not capture a clear response from the user.", "dropoffStage": "Dropped at opening", "userTurns": 0, "transcriptPreview": "Assistant: Hello! I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?", "durationSec": 9.9, "silencePct": 52.2, "longestSilenceSec": 2.3, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 72.9, "instabilityScore": 87.0, "bgSpeechIndicator": 63.3}, {"batch": "Batch 4", "recordingNo": 2, "originalCallId": "2", "audioPath": "audio/Batch_4_recording_2.mp3", "audioQuality": "Clean", "audioFindings": ["Some background-noise signs", "Volume changes somewhat during the call"], "summary": "The call opened, but the transcript does not capture a clear response from the user.", "dropoffStage": "Dropped at opening", "userTurns": 0, "transcriptPreview": "Assistant: Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?", "durationSec": 6.84, "silencePct": 34.8, "longestSilenceSec": 1.5, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 51.7, "instabilityScore": 68.1, "bgSpeechIndicator": 47.1}, {"batch": "Batch 5", "recordingNo": 1, "originalCallId": "2", "audioPath": "audio/Batch_5_recording_1.mp3", "audioQuality": "Clean", "audioFindings": ["Some background-noise signs", "Volume changes somewhat during the call"], "summary": "The call opened, but the transcript does not capture a clear response from the user.", "dropoffStage": "Dropped at opening", "userTurns": 0, "transcriptPreview": "Assistant: Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?", "durationSec": 8.1, "silencePct": 31.8, "longestSilenceSec": 1.8, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 45.5, "instabilityScore": 66.4, "bgSpeechIndicator": 43.7}, {"batch": "Batch 5", "recordingNo": 2, "originalCallId": "3", "audioPath": "audio/Batch_5_recording_2.mp3", "audioQuality": "Clean", "audioFindings": ["Some background-noise signs", "Volume changes a lot during the call"], "summary": "The agent had trouble catching what the user said, and the call spent time repeating.", "dropoffStage": "Stayed for conversation", "userTurns": 3, "transcriptPreview": "Assistant: Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nUser: For recording madam\nAssistant: I couldn't catch that properly. Could you please speak a bit louder or closer to the mic?\nUser: For recording?\nAssistant: I couldn't catch that properly. Could you please speak a bit louder or closer to the mic?\nUser: Hello\nAssistant: I couldn't catch that properly.", "durationSec": 25.3, "silencePct": 43.8, "longestSilenceSec": 2.4, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 50.6, "instabilityScore": 76.2, "bgSpeechIndicator": 49.4}, {"batch": "Batch 5", "recordingNo": 3, "originalCallId": "4", "audioPath": "audio/Batch_5_recording_3.mp3", "audioQuality": "Okay", "audioFindings": ["Quite a bit of silence", "Noticeable silent gap", "Strong background-noise signs", "Possible competing speech in the background", "Volume changes a lot during the call"], "summary": "The call opened, but the transcript does not capture a clear response from the user.", "dropoffStage": "Dropped at opening", "userTurns": 0, "transcriptPreview": "(no readable transcript)", "durationSec": 13.1, "silencePct": 48.5, "longestSilenceSec": 4.8, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 84.5, "instabilityScore": 87.5, "bgSpeechIndicator": 68.6}, {"batch": "Batch 5", "recordingNo": 4, "originalCallId": "5", "audioPath": "audio/Batch_5_recording_4.mp3", "audioQuality": "Clean", "audioFindings": ["Strong background-noise signs", "Volume changes a lot during the call"], "summary": "The user said the appointment context did not match their situation.", "dropoffStage": "Stayed for conversation", "userTurns": 6, "transcriptPreview": "Assistant: Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nUser: Yes.\nAssistant: Great. Which language are you comfortable with? English or Kannada?\nUser: English.\nAssistant: Okay. We noticed you missed your visit at Aster RV Bangalore JP Nagar. May I know the reason for this?\nUser: I never missed any appointment.\nAssistant: Thank you for clarifying. There might be a delay in our system update. Is there anything else I can help you with?\nUser: I think thank you. I have an appointment on 18th April.\nAssistant: I couldn't catch that properly. Could you please speak a bit louder or closer to the mic?\nUser: I have appointment on 18th April.\nAssistant: Thank you for clarifying. There might be a delay in our system update. Is there anything else I can help you with?\nUser: Nothing, Thank you.", "durationSec": 64.1, "silencePct": 44.0, "longestSilenceSec": 3.4, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 61.0, "instabilityScore": 81.3, "bgSpeechIndicator": 55.9}, {"batch": "Batch 5", "recordingNo": 5, "originalCallId": "6", "audioPath": "audio/Batch_5_recording_5.mp3", "audioQuality": "Clean", "audioFindings": ["Strong background-noise signs", "Volume changes a lot during the call"], "summary": "The user said the appointment context did not match their situation.", "dropoffStage": "Stayed for conversation", "userTurns": 4, "transcriptPreview": "Assistant: Hi! I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nUser: Yes, which apartment?\nAssistant: Which language are you comfortable with? English or Kannada?\nUser: English\nAssistant: Okay. We noticed you missed your visit at Aster CMI Bangalore Sahakar Nagar. May I know the reason for this?\nUser: I don't have any appointment recently, like, which state you are talking about?\nAssistant: My apologies, there might be a technical error in our records. Is there anything else I can help you with?\nUser: No.", "durationSec": 39.26, "silencePct": 42.0, "longestSilenceSec": 2.8, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 64.8, "instabilityScore": 76.7, "bgSpeechIndicator": 56.0}, {"batch": "Batch 5", "recordingNo": 6, "originalCallId": "7", "audioPath": "audio/Batch_5_recording_6.mp3", "audioQuality": "Okay", "audioFindings": ["Quite a bit of silence", "Noticeable silent gap", "Strong background-noise signs", "Volume changes a lot during the call"], "summary": "The user said the appointment context did not match their situation.", "dropoffStage": "Stayed for conversation", "userTurns": 8, "transcriptPreview": "Assistant: Hello! I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nUser: Sure.\nAssistant: Great. Which language are you comfortable with? English or Kannada?\nUser: English\nAssistant: Okay. We noticed you missed your visit at Aster RV Bangalore JP Nagar. May I know the reason for this?\nUser: When was it scheduled? I didn't get a reminder.\nAssistant: I apologize for the lack of a reminder. It would really help us improve our service if you could share the reason for missing the appointment.\nUser: I didn't even know I had an appointment.\nAssistant: Understood. Would you like me to help you reschedule this appointment for a different date or time?\nUser: Could you please tell me when it was scheduled for and with which doctor?\nUser: I do not know.\nUser: I cannot really spell it out.", "durationSec": 68.59, "silencePct": 46.4, "longestSilenceSec": 4.0, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 64.5, "instabilityScore": 79.0, "bgSpeechIndicator": 56.7}, {"batch": "Batch 5", "recordingNo": 7, "originalCallId": "8", "audioPath": "audio/Batch_5_recording_7.mp3", "audioQuality": "Okay", "audioFindings": ["Quite a bit of silence", "Strong background-noise signs", "Possible competing speech in the background", "Volume changes a lot during the call"], "summary": "The call opened, but the transcript does not capture a clear response from the user.", "dropoffStage": "Dropped at opening", "userTurns": 0, "transcriptPreview": "Assistant: Hi, I'm Asha from Aster", "durationSec": 3.09, "silencePct": 47.5, "longestSilenceSec": 1.5, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 73.9, "instabilityScore": 92.8, "bgSpeechIndicator": 65.7}, {"batch": "Batch 5", "recordingNo": 8, "originalCallId": "9", "audioPath": "audio/Batch_5_recording_8.mp3", "audioQuality": "Clean", "audioFindings": ["Quite a bit of silence", "Volume changes a lot during the call"], "summary": "The user said the appointment context did not match their situation.", "dropoffStage": "Dropped after short reply", "userTurns": 2, "transcriptPreview": "Assistant: Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?\nUser: Now, for you and me, one of us is going to score.\nUser: I didn't book any appointment.\nAssistant: Okay. Which language are you comfortable with? English or Kannada? My apologies, there might be a technical error in our records. Is", "durationSec": 18.96, "silencePct": 45.9, "longestSilenceSec": 2.1, "clarityScore": 100, "volumeRangeScore": 100, "clipPct": 0.0, "noiseScore": 34.7, "instabilityScore": 82.1, "bgSpeechIndicator": 44.3}], "batches": [{"batch": "Batch 1", "attempted": 10, "picked": 4, "successful": 0, "avgSessionSec": 39, "totalSessionSec": 149, "optOut": 1, "assetCalls": 4, "avgSilencePct": 50.0, "avgClarityScore": 100.0, "avgNoiseScore": 58.6, "avgBgSpeechIndicator": 55.95, "openingDrops": 1, "stayed": 1, "pickupRatePct": 40.0}, {"batch": "Batch 2", "attempted": 10, "picked": 5, "successful": 0, "avgSessionSec": 14, "totalSessionSec": 72, "optOut": 1, "assetCalls": 5, "avgSilencePct": 52.98, "avgClarityScore": 100.0, "avgNoiseScore": 72.9, "avgBgSpeechIndicator": 63.6, "openingDrops": 3, "stayed": 0, "pickupRatePct": 50.0}, {"batch": "Batch 3", "attempted": 10, "picked": 5, "successful": 0, "avgSessionSec": 15, "totalSessionSec": 73, "optOut": 0, "assetCalls": 5, "avgSilencePct": 39.0, "avgClarityScore": 100.0, "avgNoiseScore": 54.42, "avgBgSpeechIndicator": 50.480000000000004, "openingDrops": 2, "stayed": 0, "pickupRatePct": 50.0}, {"batch": "Batch 4", "attempted": 10, "picked": 3, "successful": 0, "avgSessionSec": 6, "totalSessionSec": 19, "optOut": 1, "assetCalls": 2, "avgSilencePct": 43.5, "avgClarityScore": 100.0, "avgNoiseScore": 62.300000000000004, "avgBgSpeechIndicator": 55.2, "openingDrops": 2, "stayed": 0, "pickupRatePct": 30.0}, {"batch": "Batch 5", "attempted": 10, "picked": 8, "successful": 0, "avgSessionSec": 29, "totalSessionSec": 234, "optOut": 1, "assetCalls": 8, "avgSilencePct": 43.7375, "avgClarityScore": 100.0, "avgNoiseScore": 59.9375, "avgBgSpeechIndicator": 55.0375, "openingDrops": 3, "stayed": 4, "pickupRatePct": 80.0}], "overview": {"attempted": 50, "picked": 25, "success": 0, "pickupRatePct": 50.0, "assetCalls": 24, "cleanAudio": 15, "needsAttention": 0}};
+const AUDIO_FILES = {
+  'Batch 1|1': 'Batch 1/1/recording_1c9a4126-11e3-4b8b-91e9-1c9757ba85a3_audio (1).mp3',
+  'Batch 1|2': 'Batch 1/2/recording_a1fef160-3cf4-42f6-af10-92d3f306a878_audio.mp3',
+  'Batch 1|3': 'Batch 1/3/recording_77a2a732-6ddb-4841-9263-12244f82927d_audio (2).mp3',
+  'Batch 1|4': 'Batch 1/4/recording_167e8c59-ce51-4930-a3ac-29afc4913b5f_audio (1).mp3',
+  'Batch 2|1': 'Batch 2/1/recording_9e9e698c-211e-45e4-84a4-b0a40ee2afb9_audio.mp3',
+  'Batch 2|2': 'Batch 2/2/recording_f00e687c-9c79-44f1-870c-26cb781ea31a_audio.mp3',
+  'Batch 2|3': 'Batch 2/3/recording_9801af95-6eec-40bc-adc0-00a279a26529_audio.mp3',
+  'Batch 2|4': 'Batch 2/4/recording_37c3c5a5-2321-4ab8-abeb-f8e4e48398ef_audio.mp3',
+  'Batch 2|5': 'Batch 2/5/recording_091e1052-46ba-4623-92d8-9167a3ddf386_audio.mp3',
+  'Batch 3|3': 'Batch 3/1/recording_08499347-16d8-4b93-8f7f-7bb7baf7c95e_audio (1).mp3',
+  'Batch 3|4': 'Batch 3/2/recording_4faadeb8-9010-4670-a16b-d7e7ee3cf64e_audio (1).mp3',
+  'Batch 3|5': 'Batch 3/3/recording_9b0023b7-dd23-401f-b9cc-ad7bc036c79b_audio (1).mp3',
+  'Batch 3|6': 'Batch 3/4/recording_2390a4a5-deeb-4253-8c86-1cf3506530bb_audio (1).mp3',
+  'Batch 3|7': 'Batch 3/5/recording_1c82e948-efa9-4e46-8f0a-f27f58aa5fd1_audio (1).mp3',
+  'Batch 4|1': 'Batch 4/1/recording_1de6f97e-d012-4929-8240-f7b9d52df307_audio.mp3',
+  'Batch 4|2': 'Batch 4/2/recording_61e90dc7-5ee9-4bbc-b7e2-26cbee178fbc_audio.mp3',
+  'Batch 5|2': 'Batch 5/1/recording_6ea8517f-491b-476f-99dd-8a4562682304_audio.mp3',
+  'Batch 5|3': 'Batch 5/2/recording_b41cc488-9cef-4368-b5d8-bdcab893d4f2_WhatsAppTrack1.mp3',
+  'Batch 5|4': 'Batch 5/3/recording_ea96f345-2759-4bdb-a5d2-0ce493873254_audio.mp3',
+  'Batch 5|5': 'Batch 5/4/recording_c5d519f5-fc9b-41a7-a6a6-99123b421ae9_audio (1).mp3',
+  'Batch 5|6': 'Batch 5/5/recording_e8b0d5c4-9b6f-4bad-bdf2-d2fe583a888f_audio.mp3',
+  'Batch 5|7': 'Batch 5/6/recording_ba6a4d3b-fc08-4c25-8ea7-df5cbfb232cf_audio (1).mp3',
+  'Batch 5|8': 'Batch 5/7/recording_314d4d26-8d43-4bd7-8d32-03d5cf82f2ae_audio.mp3',
+  'Batch 5|9': 'Batch 5/8/recording_844f0ddf-ddc8-4ac3-b94f-1029236abf6e_audio.mp3',
+};
+const state = {search:'',batch:'All',quality:'All',drop:'All',sortBy:'batch',hasFindings:false,hasConversation:false,hasPlayer:false};
+const els = {
+  searchBox: document.getElementById('searchBox'),
+  batchFilter: document.getElementById('batchFilter'),
+  qualityFilter: document.getElementById('qualityFilter'),
+  dropFilter: document.getElementById('dropFilter'),
+  sortBy: document.getElementById('sortBy'),
+  reset: document.getElementById('resetFilters'),
+  chips:[...document.querySelectorAll('.chip')],
+  batchRows: document.getElementById('batchRows'),
+  callGrid: document.getElementById('callGrid'),
+  emptyState: document.getElementById('emptyState'),
+  resultCount: document.getElementById('resultCount'),
+  insightsList: document.getElementById('insightsList'),
+  mainNavLinks:[...document.querySelectorAll('[data-screen-link]')],
+  dashboardScreen: document.getElementById('dashboardScreen'),
+  methodologyScreen: document.getElementById('methodologyScreen'),
+};
+const qualityClass = {'Clean':'clean','Okay':'okay','Needs attention':'attn'};
+[...new Set(DATA.calls.map(c=>c.batch))].forEach(b=>{ const o=document.createElement('option'); o.value=b; o.textContent=b; els.batchFilter.appendChild(o); });
+function esc(s){ return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#39;"); }
+function resolveAudioPath(call){
+  const rawPath = AUDIO_FILES[`${call.batch}|${call.originalCallId}`] || call.audioPath || '';
+  if(!rawPath) return '';
+  try {
+    return new URL(rawPath, window.location.href).href;
+  } catch (err) {
+    return rawPath;
+  }
+}
+function textMatch(call,q){ return [call.batch, 'recording '+call.recordingNo, call.summary, call.dropoffStage, call.transcriptPreview, ...(call.audioFindings||[])].join(' ').toLowerCase().includes(q); }
+function filteredCalls(){
+  let arr=DATA.calls.filter(c=>{
+    if(state.batch!=='All'&&c.batch!==state.batch)return false;
+    if(state.quality!=='All'&&c.audioQuality!==state.quality)return false;
+    if(state.drop!=='All'&&c.dropoffStage!==state.drop)return false;
+    if(state.hasFindings&&(!c.audioFindings||!c.audioFindings.length))return false;
+    if(state.hasConversation&&(c.userTurns||0)===0)return false;
+    if(state.hasPlayer&&!resolveAudioPath(c))return false;
+    if(state.search&&!textMatch(c,state.search))return false;
+    return true;
+  });
+  arr.sort((a,b)=>{
+    if(state.sortBy==='durationDesc') return (b.durationSec||0)-(a.durationSec||0);
+    if(state.sortBy==='durationAsc') return (a.durationSec||0)-(b.durationSec||0);
+    if(state.sortBy==='silenceDesc') return (b.silencePct||0)-(a.silencePct||0);
+    if(state.sortBy==='noiseDesc') return (b.bgSpeechIndicator||0)-(a.bgSpeechIndicator||0);
+    if(a.batch===b.batch) return (a.recordingNo||0)-(b.recordingNo||0);
+    return a.batch.localeCompare(b.batch, undefined, {numeric:true});
+  });
+  return arr;
+}
+function topFindings(arr){ const m={}; arr.forEach(c=>(c.audioFindings||[]).forEach(f=>m[f]=(m[f]||0)+1)); return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,8); }
+function countBy(arr,field){ const m={}; arr.forEach(x=>m[x[field]]=(m[x[field]]||0)+1); return m; }
+function avg(arr, field){ const vals=arr.map(x=>x[field]).filter(v=>v!==null&&v!==undefined&&!Number.isNaN(v)); return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0; }
+let charts={};
+function destroyCharts(){ Object.values(charts).forEach(c=>c&&c.destroy&&c.destroy()); charts={}; }
+function renderBatchRows(){
+  els.batchRows.innerHTML = DATA.batches.map(b=>`<tr><td>${b.batch}</td><td>${b.attempted}</td><td>${b.picked}</td><td>${b.pickupRatePct}%</td><td>${b.assetCalls??'n/a'}</td><td>${b.avgSilencePct!=null?b.avgSilencePct.toFixed(0)+'%':'n/a'}</td><td>${b.avgClarityScore!=null?b.avgClarityScore.toFixed(0)+'/100':'n/a'}</td><td>${b.avgNoiseScore!=null?b.avgNoiseScore.toFixed(0)+'/100':'n/a'}</td><td>${b.avgBgSpeechIndicator!=null?b.avgBgSpeechIndicator.toFixed(0)+'/100':'n/a'}</td></tr>`).join('');
+}
+function commonChartOptions(extra){ return Object.assign({responsive:true,maintainAspectRatio:false,animation:false,resizeDelay:250,plugins:{legend:{labels:{color:'#eef4ff'}}},scales:{x:{ticks:{color:'#a6b5d6'},grid:{color:'rgba(255,255,255,.06)'}},y:{ticks:{color:'#a6b5d6'},grid:{color:'rgba(255,255,255,.06)'},suggestedMin:0,suggestedMax:100}}}, extra||{}); }
+function renderCharts(arr){
+  destroyCharts();
+  const batches = DATA.batches.map(b=>b.batch);
+  charts.batch = new Chart(document.getElementById('batchChart').getContext('2d'), {type:'bar',data:{labels:batches,datasets:[{label:'Picked',data:DATA.batches.map(b=>b.picked)},{label:'Successful reschedules',data:DATA.batches.map(b=>b.successful)}]},options:commonChartOptions({scales:{x:{ticks:{color:'#a6b5d6'},grid:{color:'rgba(255,255,255,.06)'}},y:{ticks:{color:'#a6b5d6'},grid:{color:'rgba(255,255,255,.06)'},suggestedMin:0}}})});
+  charts.silence = new Chart(document.getElementById('silenceChart').getContext('2d'), {type:'line',data:{labels:batches,datasets:[{label:'Average silence %',data:batches.map(b=>{const sub=arr.filter(c=>c.batch===b); return avg(sub,'silencePct');}),tension:.35}]},options:commonChartOptions()});
+  charts.clarity = new Chart(document.getElementById('clarityChart').getContext('2d'), {type:'bar',data:{labels:batches,datasets:[{label:'Clarity score',data:batches.map(b=>{const sub=arr.filter(c=>c.batch===b); return avg(sub,'clarityScore');})}]},options:commonChartOptions()});
+  charts.noise = new Chart(document.getElementById('noiseChart').getContext('2d'), {type:'bar',data:{labels:batches,datasets:[{label:'Noise score',data:batches.map(b=>{const sub=arr.filter(c=>c.batch===b); return avg(sub,'noiseScore');})}]},options:commonChartOptions()});
+  charts.bgSpeech = new Chart(document.getElementById('bgSpeechChart').getContext('2d'), {type:'line',data:{labels:batches,datasets:[{label:'Background-speech sign',data:batches.map(b=>{const sub=arr.filter(c=>c.batch===b); return avg(sub,'bgSpeechIndicator');}),tension:.35}]},options:commonChartOptions()});
+  const q = countBy(arr,'audioQuality');
+  charts.quality = new Chart(document.getElementById('qualityChart').getContext('2d'), {type:'doughnut',data:{labels:['Clean','Okay','Needs attention'],datasets:[{data:[q['Clean']||0,q['Okay']||0,q['Needs attention']||0]}]},options:{responsive:true,maintainAspectRatio:false,animation:false,resizeDelay:250,plugins:{legend:{labels:{color:'#eef4ff'}}}}});
+  const top = topFindings(arr);
+  charts.issues = new Chart(document.getElementById('issuesChart').getContext('2d'), {type:'bar',data:{labels:top.map(x=>x[0]),datasets:[{label:'Calls',data:top.map(x=>x[1])}]},options:commonChartOptions({indexAxis:'y',scales:{x:{ticks:{color:'#a6b5d6'},grid:{color:'rgba(255,255,255,.06)'},suggestedMin:0},y:{ticks:{color:'#a6b5d6'},grid:{color:'rgba(255,255,255,.06)'}}}})});
+  const d = countBy(arr,'dropoffStage');
+  charts.drop = new Chart(document.getElementById('dropChart').getContext('2d'), {type:'doughnut',data:{labels:['Dropped at opening','Dropped after short reply','Stayed for conversation'],datasets:[{data:[d['Dropped at opening']||0,d['Dropped after short reply']||0,d['Stayed for conversation']||0]}]},options:{responsive:true,maintainAspectRatio:false,animation:false,resizeDelay:250,plugins:{legend:{labels:{color:'#eef4ff'}}}}});
+}
+function renderInsights(arr){
+  const lines = [];
+  if(!arr.length){
+    lines.push('No calls match the current filters.');
+  } else {
+    lines.push(`You are viewing ${arr.length} call${arr.length===1?'':'s'}.`);
+    lines.push(`Average silence in this view is ${avg(arr,'silencePct').toFixed(0)}%.`);
+    lines.push(`Average speech clarity score in this view is ${avg(arr,'clarityScore').toFixed(0)}/100.`);
+    lines.push(`Average background-noise score in this view is ${avg(arr,'noiseScore').toFixed(0)}/100.`);
+    lines.push(`Average background-speech sign in this view is ${avg(arr,'bgSpeechIndicator').toFixed(0)}/100.`);
+    const top = topFindings(arr);
+    if(top.length) lines.push(`Most common sound issue here is "${top[0][0]}" (${top[0][1]} calls).`);
+  }
+  els.insightsList.innerHTML = lines.map(x=>`<li>${esc(x)}</li>`).join('');
+}
+function renderCalls(arr){
+  els.resultCount.textContent = arr.length;
+  if(!arr.length){ els.callGrid.innerHTML=''; els.emptyState.style.display='block'; return; }
+  els.emptyState.style.display='none';
+  els.callGrid.innerHTML = arr.map(call=>{
+    const resolvedAudioPath = resolveAudioPath(call);
+    const player = resolvedAudioPath ? `<audio controls preload="metadata" src="${esc(resolvedAudioPath)}"></audio>` : `<div style="color:#a6b5d6">Audio file not available in this recording folder.</div>`;
+    const findings = (call.audioFindings||[]).length ? call.audioFindings.map(f=>`<span class="finding">${esc(f)}</span>`).join('') : `<span class="finding">No major sound issue detected by the simple audio checks</span>`;
+    return `<article class="call-card"><div class="call-head"><div><div style="font-size:18px;font-weight:800">${esc(call.batch)} · Recording ${call.recordingNo}</div><div style="margin-top:8px"><span class="badge ${qualityClass[call.audioQuality]||'okay'}">${esc(call.audioQuality)}</span><span class="badge drop">${esc(call.dropoffStage)}</span></div></div><div style="color:#a6b5d6">${call.durationSec!=null?call.durationSec.toFixed(1)+'s':'n/a'}</div></div><div class="call-body">${player}<div><span class="pill">Silence: ${call.silencePct!=null?call.silencePct.toFixed(0)+'%':'n/a'}</span><span class="pill">Clarity: ${call.clarityScore!=null?call.clarityScore.toFixed(0)+'/100':'n/a'}</span><span class="pill">Noise signs: ${call.noiseScore!=null?call.noiseScore.toFixed(0)+'/100':'n/a'}</span><span class="pill">Background-speech sign: ${call.bgSpeechIndicator!=null?call.bgSpeechIndicator.toFixed(0)+'/100':'n/a'}</span></div><div>${findings}</div><div><strong>Conversation summary</strong><div style="color:#a6b5d6;line-height:1.6;margin-top:6px">${esc(call.summary)}</div></div><details><summary>Show transcript preview</summary><pre>${esc(call.transcriptPreview)}</pre></details></div></article>`;
+  }).join('');
+}
+function getScreenForHash(hash){
+  if(!hash || hash === '#' || hash === '#dashboard') return 'dashboard';
+  if(hash === '#methodology' || hash.startsWith('#method-')) return 'methodology';
+  return 'dashboard';
+}
+function setActiveScreen(screen){
+  const isMethodology = screen === 'methodology';
+  els.dashboardScreen.classList.toggle('active', !isMethodology);
+  els.methodologyScreen.classList.toggle('active', isMethodology);
+  els.mainNavLinks.forEach(link=>link.classList.toggle('active', link.dataset.screenLink === screen));
+}
+function syncScreenFromHash(){
+  const hash = window.location.hash;
+  const screen = getScreenForHash(hash);
+  setActiveScreen(screen);
+  if(hash && hash !== '#dashboard' && hash !== '#methodology'){
+    const target = document.querySelector(hash);
+    if(target){
+      requestAnimationFrame(()=>target.scrollIntoView({block:'start'}));
+    }
+  } else {
+    window.scrollTo({top:0, behavior:'auto'});
+  }
+}
+function render(){ const arr=filteredCalls(); renderCharts(arr); renderInsights(arr); renderCalls(arr); }
+els.searchBox.addEventListener('input',e=>{state.search=e.target.value.trim().toLowerCase(); render();});
+els.batchFilter.addEventListener('change',e=>{state.batch=e.target.value; render();});
+els.qualityFilter.addEventListener('change',e=>{state.quality=e.target.value; render();});
+els.dropFilter.addEventListener('change',e=>{state.drop=e.target.value; render();});
+els.sortBy.addEventListener('change',e=>{state.sortBy=e.target.value; render();});
+els.chips.forEach(chip=>chip.addEventListener('click',()=>{ const k=chip.dataset.chip; state[k]=!state[k]; chip.classList.toggle('active',state[k]); render(); }));
+els.reset.addEventListener('click',()=>{ state.search=''; state.batch='All'; state.quality='All'; state.drop='All'; state.sortBy='batch'; state.hasFindings=false; state.hasConversation=false; state.hasPlayer=false; els.searchBox.value=''; els.batchFilter.value='All'; els.qualityFilter.value='All'; els.dropFilter.value='All'; els.sortBy.value='batch'; els.chips.forEach(c=>c.classList.remove('active')); render(); });
+window.addEventListener('hashchange', syncScreenFromHash);
+renderBatchRows();
+render();
+syncScreenFromHash();
+</script>
+</body></html>

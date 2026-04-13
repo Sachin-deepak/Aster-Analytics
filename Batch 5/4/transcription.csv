@@ -1,0 +1,14 @@
+timestamp,sender,user_id,messagetype,message
+10/04/2026, 12:02:59,assistant,,Voice Call,Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?
+10/04/2026, 12:03:02,user,919886666202,Voice Call,Yes.
+10/04/2026, 12:03:06,assistant,,Voice Call,Great. Which language are you comfortable with? English or Kannada?
+10/04/2026, 12:03:09,user,919886666202,Voice Call,English.
+10/04/2026, 12:03:16,assistant,,Voice Call,Okay. We noticed you missed your visit at Aster RV Bangalore JP Nagar. May I know the reason for this?
+10/04/2026, 12:03:21,user,919886666202,Voice Call,I never missed any appointment.
+10/04/2026, 12:03:28,assistant,,Voice Call,Thank you for clarifying. There might be a delay in our system update. Is there anything else I can help you with?
+10/04/2026, 12:03:33,user,919886666202,Voice Call,I think thank you. I have an appointment on 18th April.
+10/04/2026, 12:03:37,assistant,,Voice Call,I couldn't catch that properly. Could you please speak a bit louder or closer to the mic?
+10/04/2026, 12:03:42,user,919886666202,Voice Call,I have appointment on 18th April.
+10/04/2026, 12:03:48,assistant,,Voice Call,Thank you for clarifying. There might be a delay in our system update. Is there anything else I can help you with?
+10/04/2026, 12:03:51,user,919886666202,Voice Call,Nothing, Thank you.
+10/04/2026, 12:03:56,assistant,,Voice Call,Thank you for your feedback. Thank you for your time. Have a great day. Goodbye.

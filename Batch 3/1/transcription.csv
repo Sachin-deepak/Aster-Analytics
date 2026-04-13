@@ -1,0 +1,6 @@
+timestamp,sender,user_id,messagetype,message
+10/04/2026, 06:35:10,assistant,,Voice Call,Hello, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?
+10/04/2026, 06:35:17,user,919972335888,Voice Call,Ma'am, 28. Ma'am actually I am in temple, can I call you? Can you call me back tomorrow?
+10/04/2026, 06:35:22,user,919972335888,Voice Call,Thank you Ma'am
+10/04/2026, 06:35:22,assistant,,Voice Call,Sure, I can call you back tomorrow. What
+10/04/2026, 06:35:26,assistant,,Voice Call,Thank you for your time. Have a great day.

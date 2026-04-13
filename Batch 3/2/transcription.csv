@@ -1,0 +1,6 @@
+timestamp,sender,user_id,messagetype,message
+10/04/2026, 06:33:27,assistant,,Voice Call,Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?
+10/04/2026, 06:33:30,user,919900100996,Voice Call,No, I have not taken any appointment.
+10/04/2026, 06:33:36,assistant,,Voice Call,My apologies, there might be a technical error in our records. Is there anything else I can help you with?
+10/04/2026, 06:33:38,user,919900100996,Voice Call,No no thank you
+10/04/2026, 06:33:42,assistant,,Voice Call,Thank you for your time. Have a great

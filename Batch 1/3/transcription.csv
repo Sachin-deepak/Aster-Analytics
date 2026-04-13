@@ -1,0 +1,29 @@
+timestamp,sender,user_id,messagetype,message
+09/04/2026, 11:01:08,assistant,,Voice Call,Hi, I'm Asha from Aster Hospitals. Is this a good time to speak for a minute regarding your missed appointment?
+09/04/2026, 11:01:19,user,919481905591,Voice Call,Yes. Vera religion ninnu jaan kettu nannu aade problem. Ente munnodulla jeevith.
+09/04/2026, 11:01:20,assistant,,Voice Call,Let me say that again. Hi, I'm Asha
+09/04/2026, 11:01:25,assistant,,Voice Call,Which language are you comfortable with? English or Kannada?
+09/04/2026, 11:01:25,user,919481905591,Voice Call,Avaru irakku aalu please. Enna valuthu enna please. Aa yes yes please. Athu kittulankil avarkum thaalappari olum irakke kannu.
+09/04/2026, 11:01:29,user,919481905591,Voice Call,English only
+09/04/2026, 11:01:31,assistant,,Voice Call,We noticed you missed your visit at Aster
+09/04/2026, 11:01:43,assistant,,Voice Call,Okay. We noticed you missed your visit
+09/04/2026, 11:01:43,user,919481905591,Voice Call,Ijjalla adu politics. Oh yeah. Do you have CGHS?
+09/04/2026, 11:01:44,user,919481905591,Voice Call,Empanelment.
+09/04/2026, 11:01:50,user,919481905591,Voice Call,CGH.
+09/04/2026, 11:01:50,assistant,,Voice Call,May I know the reason for this? Was it due to cost,
+09/04/2026, 11:01:54,user,919481905591,Voice Call,No, no. I say,
+09/04/2026, 11:02:00,assistant,,Voice Call,It would really help us improve our service if you could share the reason for missing the appointment. It would really help us improve our service if you could share the reason for missing the appointment.
+09/04/2026, 11:02:04,user,919481905591,Voice Call,Actually
+09/04/2026, 11:02:08,user,919481905591,Voice Call,I want a CGHS empanelment.
+09/04/2026, 11:02:09,assistant,,Voice Call,Would you like me to help you reschedule this appointment for a different date or time?
+09/04/2026, 11:02:12,user,919481905591,Voice Call,cough
+09/04/2026, 11:02:16,assistant,,Voice Call,Would you like me to help you reschedule this appointment for a different date or time?
+09/04/2026, 11:02:16,user,919481905591,Voice Call,Actually, I didn't ask for an appointment today.
+09/04/2026, 11:02:22,user,919481905591,Voice Call,Kaal muttinu malodikkum ennu paraythathu idhaan
+09/04/2026, 11:02:24,user,919481905591,Voice Call,Our 24 movies.
+09/04/2026, 11:02:31,assistant,,Voice Call,Is there anything else I can help you with?Is there anything else I can help you with?
+09/04/2026, 11:02:36,user,919481905591,Voice Call,Uh, do you have CGHS empanelment?
+09/04/2026, 11:02:40,user,919481905591,Voice Call,CGHS Central Government
+09/04/2026, 11:02:42,user,919481905591,Voice Call,and scheme.
+09/04/2026, 11:02:43,user,919481905591,Voice Call,to the right way.
+09/04/2026, 11:02:44,assistant,,Voice Call,Might need a
